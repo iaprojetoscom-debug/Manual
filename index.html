@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Manual de Campo — Sobrevivência & Contingência</title>
+<style>
+  :root {
+    --bg-main: #f3ede0;
+    --bg-card: #faf6ed;
+    --bg-header: #2b3326;
+    --text-main: #1f241d;
+    --text-muted: #5a6156;
+    --accent: #b85d19;
+    --accent-secondary: #3b593f;
+    --border-color: #d6cbb5;
+    --danger: #b52b27;
+    --map-bg: #e7decb;
+    --map-grid: rgba(43, 51, 38, 0.14);
+    --route-go: #1d63b8;
+    --route-back: #c92a2a;
+    --shelter-color: #2b8a3e;
+    --shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  /* Modo Blecaute - Âmbar */
+  body.blackout-amber {
+    --bg-main: #000000;
+    --bg-card: #0a0804;
+    --bg-header: #0d0a04;
+    --text-main: #ffb000;
+    --text-muted: #b37b00;
+    --accent: #ff8c00;
+    --accent-secondary: #cc8800;
+    --border-color: #3d2a00;
+    --danger: #ff4500;
+    --map-bg: #050400;
+    --map-grid: rgba(255, 176, 0, 0.16);
+    --route-go: #00b4ff;
+    --route-back: #ff3b30;
+    --shelter-color: #39ff14;
+    --shadow: none;
+  }
+
+  /* Modo Blecaute - Verde Fósforo */
+  body.blackout-green {
+    --bg-main: #000000;
+    --bg-card: #040a05;
+    --bg-header: #040d06;
+    --text-main: #39ff14;
+    --text-muted: #22990c;
+    --accent: #39ff14;
+    --accent-secondary: #28b80f;
+    --border-color: #114707;
+    --danger: #ff3b30;
+    --map-bg: #020803;
+    --map-grid: rgba(57, 255, 20, 0.16);
+    --route-go: #00d4ff;
+    --route-back: #ff3b30;
+    --shelter-color: #39ff14;
+    --shadow: none;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.55;
+    padding-bottom: 95px;
+    transition: background-color 0.25s, color 0.25s;
+    overflow-x: hidden;
+  }
+
+  .ui-font {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  /* Cabeçalho */
+  header {
+    background-color: var(--bg-header);
+    color: #f3ede0;
+    padding: 12px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--accent);
+  }
+
+  body.blackout-amber header,
+  body.blackout-green header {
+    color: var(--text-main);
+  }
+
+  .header-title {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header-title span.tag {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    opacity: 0.85;
+  }
+
+  .header-title h1 {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .btn-top {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.28);
+    color: inherit;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  body.blackout-amber .btn-top,
+  body.blackout-green .btn-top {
+    border-color: var(--border-color);
+    background: transparent;
+  }
+
+  /* Container Principal */
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 14px;
+  }
+
+  .view {
+    display: none;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .view.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Capa & Busca */
+  .book-cover {
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+
+  .book-cover::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    background: var(--accent);
+    border-radius: 8px 0 0 8px;
+  }
+
+  .book-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  body.blackout-amber .book-badge,
+  body.blackout-green .book-badge {
+    color: #000;
+  }
+
+  .book-cover h2 {
+    font-size: 21px;
+    margin-bottom: 6px;
+    line-height: 1.25;
+  }
+
+  .book-cover p {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .search-box {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-main);
+    color: var(--text-main);
+    font-size: 15px;
+    outline: none;
+  }
+
+  .search-box:focus {
+    border-color: var(--accent);
+  }
+
+  .quick-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1.5px solid var(--accent);
+    border-radius: 8px;
+    padding: 11px 14px;
+    margin-bottom: 14px;
+    cursor: pointer;
+  }
+
+  .chapter-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .chapter-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+  }
+
+  .chapter-num {
+    min-width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    background: var(--bg-header);
+    color: #f3ede0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  body.blackout-amber .chapter-num,
+  body.blackout-green .chapter-num {
+    background: transparent;
+    border: 1px solid var(--text-main);
+    color: var(--text-main);
+  }
+
+  .chapter-info h3 {
+    font-size: 16px;
+    margin-bottom: 2px;
+  }
+
+  .chapter-info p {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Leitor de Capítulo */
+  .reader-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+
+  .reader-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .reader-card h2 {
+    font-size: 22px;
+    margin-bottom: 12px;
+    line-height: 1.25;
+  }
+
+  .reader-card h4 {
+    font-size: 16px;
+    margin: 16px 0 6px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .reader-card p, .reader-card li {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+
+  .reader-card ul, .reader-card ol {
+    padding-left: 20px;
+  }
+
+  .warning-box {
+    border-left: 4px solid var(--danger);
+    background: rgba(181, 43, 39, 0.08);
+    padding: 11px 13px;
+    border-radius: 0 6px 6px 0;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+
+  .diagram-box {
+    border: 1px dashed var(--border-color);
+    background: var(--bg-main);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 14px 0;
+    text-align: center;
+  }
+
+  .diagram-box svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .diagram-caption {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+
+  .reader-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .btn-nav {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-main);
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .btn-nav.primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  body.blackout-amber .btn-nav.primary,
+  body.blackout-green .btn-nav.primary {
+    color: #000;
+  }
+
+  /* Aba Bússola & Mapa */
+  .nav-split {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  @media (min-width: 600px) {
+    .nav-split {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .panel-box {
+    background: var(--bg-card);
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    padding: 14px;
+    box-shadow: var(--shadow);
+    margin-bottom: 14px;
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 6px;
+  }
+
+  .panel-header h3 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .compass-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #compassCanvas {
+    width: 220px;
+    height: 220px;
+    touch-action: none;
+    cursor: grab;
+  }
+
+  .heading-readout {
+    font-size: 22px;
+    font-weight: 800;
+    margin: 6px 0 2px;
+    letter-spacing: 1px;
+  }
+
+  .sensor-status {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn-sm {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-main);
+    color: var(--text-main);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    flex: 1;
+    min-width: 80px;
+    text-align: center;
+  }
+
+  .btn-sm.active-state {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  body.blackout-amber .btn-sm.active-state,
+  body.blackout-green .btn-sm.active-state {
+    color: #000;
+  }
+
+  .btn-sm.shelter-btn {
+    background: #2b8a3e;
+    color: #fff;
+    border-color: #2b8a3e;
+  }
+
+  /* Caixa MAPA */
+  #mapCanvas {
+    width: 100%;
+    height: 230px;
+    background: var(--map-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .map-legend {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    margin-bottom: 10px;
+    color: var(--text-muted);
+  }
+
+  .dot-legend {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 4px;
+  }
+
+  .saved-routes {
+    margin-top: 10px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 8px;
+    font-size: 12px;
+  }
+
+  .route-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    background: var(--bg-main);
+    border-radius: 6px;
+    margin-top: 6px;
+  }
+
+  /* Tabela Morse */
+  .morse-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .morse-cell {
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px;
+    text-align: center;
+  }
+
+  .morse-cell .char {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .morse-cell .code {
+    font-size: 13px;
+    font-family: monospace;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  /* Ferramentas & Checklist */
+  .checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .checklist-item input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+  }
+
+  .checklist-item.checked span {
+    text-decoration: line-through;
+    opacity: 0.6;
+  }
+
+  .sos-screen-flash {
+    position: fixed;
+    inset: 0;
+    background: #ffffff;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #000;
+    font-weight: 900;
+    font-size: 32px;
+  }
+
+  /* Assinatura Oficial Rodapé */
+  .app-signature {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 10px 0 16px 0;
+    letter-spacing: 0.5px;
+  }
+
+  /* Barra Inferior (5 Abas) */
+  nav.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-header);
+    color: #f3ede0;
+    display: flex;
+    border-top: 2px solid var(--accent);
+    z-index: 100;
+  }
+
+  body.blackout-amber nav.bottom-nav,
+  body.blackout-green nav.bottom-nav {
+    color: var(--text-main);
+  }
+
+  .nav-btn {
+    flex: 1;
+    padding: 10px 2px;
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    opacity: 0.65;
+    cursor: pointer;
+  }
+
+  .nav-btn.active {
+    opacity: 1;
+    color: #ffb000;
+  }
+
+  body.blackout-green .nav-btn.active {
+    color: #39ff14;
+  }
+
+  .nav-icon {
+    font-size: 16px;
+  }
+</style>
+</head>
+<body>
+
+<header class="ui-font">
+  <div class="header-title">
+    <span class="tag">Edição Offline • Guia de Campo</span>
+    <h1>MANUAL DE SOBREVIVÊNCIA</h1>
+  </div>
+  <div class="header-actions">
+    <button class="btn-top" id="btnBlackout" onclick="cycleBlackout()">Blecaute: OFF</button>
+  </div>
+</header>
+
+<main>
+  <!-- ABA 1: CAPA E SUMÁRIO -->
+  <section id="view-home" class="view active">
+    <div class="book-cover">
+      <span class="book-badge ui-font">100% Offline • Sem Internet</span>
+      <h2>Manual de Campo & Contingência</h2>
+      <p>Enciclopédia completa de sobrevivência para blecautes, abrigos por terreno, resgate, armadilhas, psicologia e orientação.</p>
+      <input type="text" id="searchInput" class="search-box ui-font" placeholder="Buscar: fogo, abrigo, mata, rochoso, morse, radio..." oninput="renderChapters()">
+    </div>
+
+    <div class="quick-banner ui-font" onclick="switchTab('compass')">
+      <div>
+        <strong style="font-size:14px;">🧭 Bússola & Mapa de Rastreamento</strong>
+        <div style="font-size:12px; color:var(--text-muted);">Estabilização avançada + trilha ida (azul) / volta (vermelho)</div>
+      </div>
+      <span style="font-weight:800; color:var(--accent);">ABRIR →</span>
+    </div>
+
+    <div id="bookmarkBanner" class="quick-banner ui-font" style="display:none;" onclick="openSavedBookmark()">
+      <div>
+        <strong style="font-size:13px;">🔖 Continuar leitura marcada</strong>
+        <div id="bookmarkLabel" style="font-size:12px; color:var(--text-muted);"></div>
+      </div>
+      <span style="font-weight:800; color:var(--accent);">LER →</span>
+    </div>
+
+    <div id="chapterList" class="chapter-grid"></div>
+
+    <div class="app-signature ui-font">
+      © AZ Manutenções • Todos os direitos reservados
+    </div>
+  </section>
+
+  <!-- ABA 2: LEITOR DO LIVRO -->
+  <section id="view-reader" class="view">
+    <div class="reader-card">
+      <div class="reader-meta ui-font">
+        <span id="readerChapterTag">CAPÍTULO 01</span>
+        <button class="btn-sm" style="flex:none; padding:4px 8px;" onclick="toggleBookmark()">🔖 Marcar Página</button>
+      </div>
+      <div id="readerContent"></div>
+    </div>
+
+    <div class="reader-nav ui-font">
+      <button class="btn-nav" id="btnPrevChap" onclick="changeChapter(-1)">← Anterior</button>
+      <button class="btn-nav" onclick="switchTab('home')">Índice</button>
+      <button class="btn-nav primary" id="btnNextChap" onclick="changeChapter(1)">Próximo →</button>
+    </div>
+
+    <div class="app-signature ui-font">
+      © AZ Manutenções • Todos os direitos reservados
+    </div>
+  </section>
+
+  <!-- ABA 3: BÚSSOLA & CAIXA MAPA -->
+  <section id="view-compass" class="view">
+    <div class="nav-split">
+      <!-- ESQUERDA: BÚSSOLA ANALÓGICA -->
+      <div class="panel-box ui-font">
+        <div class="panel-header">
+          <h3>🧭 Bússola de Orientação</h3>
+          <span id="lockBadge" style="font-size:11px; color:var(--accent); font-weight:700;">LIVRE</span>
+        </div>
+
+        <div class="compass-wrapper">
+          <canvas id="compassCanvas" width="220" height="220"></canvas>
+          <div class="heading-readout" id="headingDisplay">000° N</div>
+          <div class="sensor-status" id="sensorStatus">Filtro antivibração ativo. Arraste ou ative o sensor.</div>
+
+          <div class="btn-row">
+            <button class="btn-sm" id="btnSensor" onclick="enableCompassSensor()">Ativar Sensor</button>
+            <button class="btn-sm" id="btnLock" onclick="toggleHeadingLock()">Travar Rumo</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DIREITA: CAIXA MAPA COM BOTÃO ABRIGO -->
+      <div class="panel-box ui-font">
+        <div class="panel-header">
+          <h3>🗺️ MAPA & RASTREIO</h3>
+          <span id="trackStatus" style="font-size:11px; font-weight:700; color:var(--route-go);">IDA (AZUL)</span>
+        </div>
+
+        <canvas id="mapCanvas" width="320" height="230"></canvas>
+
+        <div class="map-legend">
+          <span><i class="dot-legend" style="background:#2b8a3e;"></i>Início</span>
+          <span><i class="dot-legend" style="background:#2b8a3e; border:1px solid #fff;"></i>🏕️ Abrigo</span>
+          <span><i class="dot-legend" style="background:var(--route-go);"></i>Ida</span>
+          <span><i class="dot-legend" style="background:var(--route-back);"></i>Retorno</span>
+        </div>
+
+        <div class="btn-row" style="margin-bottom:6px;">
+          <button class="btn-sm" id="btnGpsTrack" onclick="toggleGpsTracking()">Iniciar GPS</button>
+          <button class="btn-sm" onclick="stepForward()">+ Passo</button>
+          <button class="btn-sm shelter-btn" onclick="markShelterWaypoint()">🏕️ Marcar Abrigo</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn-sm" id="btnModeSwitch" onclick="toggleReturnMode()">Modo Retorno</button>
+          <button class="btn-sm" onclick="saveCurrentTrack()">Gravar Mapa</button>
+          <button class="btn-sm" onclick="resetTrack()">Limpar</button>
+        </div>
+
+        <div class="saved-routes" id="savedRoutesBox">
+          <strong>Mapas Gravados Offline:</strong>
+          <div id="savedRoutesList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-signature ui-font">
+      © AZ Manutenções • Todos os direitos reservados
+    </div>
+  </section>
+
+  <!-- ABA 4: CÓDIGO MORSE & RÁDIO -->
+  <section id="view-morse" class="view">
+    <div class="panel-box ui-font">
+      <div class="panel-header">
+        <h3>📡 Guia de Rádio & Código Morse</h3>
+        <span style="font-size:11px; color:var(--accent); font-weight:700;">PADRÃO INTERNACIONAL</span>
+      </div>
+
+      <p style="font-size:14px; margin-bottom:12px; color:var(--text-muted);">
+        O Código Morse utiliza pontos (•) e traços (—) para transmitir mensagens via rádio de frequência (VHF/PX) ou sinais visuais de luz.
+      </p>
+
+      <h4>Tradutor Instantâneo Morse</h4>
+      <input type="text" id="morseInput" class="search-box ui-font" placeholder="Digite sua mensagem (ex: SOS, AJUDA)..." oninput="translateMorse()" style="margin-bottom:8px;">
+      <div id="morseOutput" style="font-family:monospace; font-size:16px; font-weight:700; color:var(--accent); background:var(--bg-main); padding:10px; border-radius:6px; margin-bottom:14px; word-break:break-all; min-height:40px;">... --- ...</div>
+
+      <h4>Abecedário Morse (A a Z)</h4>
+      <div class="morse-grid" id="morseAlphabetGrid"></div>
+
+      <h4>Números (0 a 9)</h4>
+      <div class="morse-grid" id="morseNumbersGrid"></div>
+
+      <div class="warning-box" style="margin-top:14px;">
+        <strong>Dica de Rádio de Frequência:</strong> Em caso de pane nas redes de celular, rádios analógicos VHF/UHF e PX (Faixa do Cidadão) são cruciais. O canal internacional de emergência marítima e terrestre em VHF é o <strong>Canal 16 (156.8 MHz)</strong>.
+      </div>
+    </div>
+
+    <div class="app-signature ui-font">
+      © AZ Manutenções • Todos os direitos reservados
+    </div>
+  </section>
+
+  <!-- ABA 5: FERRAMENTAS & MOCHILA -->
+  <section id="view-tools" class="view">
+    <div class="panel-box ui-font" style="margin-bottom:14px;">
+      <div class="panel-header">
+        <h3>🎒 Checklist: Mochila de Fuga (72h)</h3>
+        <span id="checkProgress" style="font-size:12px; font-weight:700; color:var(--accent);">0%</span>
+      </div>
+      <div id="checklistContainer"></div>
+    </div>
+
+    <div class="panel-box ui-font">
+      <div class="panel-header">
+        <h3>🆘 Sinalizador Visual Morse (SOS)</h3>
+        <span style="font-size:11px; color:var(--danger); font-weight:700;">... --- ...</span>
+      </div>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">
+        Pisca a tela inteira em branco máximo no padrão internacional de socorro (3 curtos, 3 longos, 3 curtos) para sinalização noturna.
+      </p>
+      <button class="btn-nav primary" style="width:100%;" onclick="startSOS()">ATIVAR SINAL SOS NA TELA</button>
+    </div>
+
+    <div class="app-signature ui-font">
+      © AZ Manutenções • Todos os direitos reservados
+    </div>
+  </section>
+</main>
+
+<!-- Tela de Flash SOS -->
+<div id="sosOverlay" class="sos-screen-flash ui-font" onclick="stopSOS()">
+  <div>SOS • ... --- ...</div>
+  <div style="font-size:14px; font-weight:600; margin-top:12px;">Toque em qualquer lugar para parar</div>
+</div>
+
+<!-- Navegação Inferior (5 Abas) -->
+<nav class="bottom-nav ui-font">
+  <button class="nav-btn active" id="nav-home" onclick="switchTab('home')">
+    <span class="nav-icon">📖</span>
+    <span>Livro</span>
+  </button>
+  <button class="nav-btn" id="nav-reader" onclick="switchTab('reader')">
+    <span class="nav-icon">📄</span>
+    <span>Leitura</span>
+  </button>
+  <button class="nav-btn" id="nav-compass" onclick="switchTab('compass')">
+    <span class="nav-icon">🧭</span>
+    <span>Bússola</span>
+  </button>
+  <button class="nav-btn" id="nav-morse" onclick="switchTab('morse')">
+    <span class="nav-icon">📡</span>
+    <span>Morse</span>
+  </button>
+  <button class="nav-btn" id="nav-tools" onclick="switchTab('tools')">
+    <span class="nav-icon">🎒</span>
+    <span>Ferramentas</span>
+  </button>
+</nav>
+
+<script>
+/* =========================================================
+   1. BANCO DE DADOS COMPLETO (10 CAPÍTULOS + ABRIGOS)
+========================================================= */
+const CHAPTERS = [
+  {
+    id: 0,
+    num: "01",
+    title: "Primeiras 24 Horas de Blecaute",
+    subtitle: "Ações imediatas e críticas antes que água, bateria e comunicações acabem",
+    keywords: "blecaute energia agua geladeira bateria radio emergencia",
+    content: `
+      <h2>Primeiras 24 Horas de Blecaute</h2>
+      <p>Quando ocorre uma queda generalizada de energia, a infraestrutura urbana tem um prazo muito curto antes de parar completamente. As primeiras <strong>2 horas</strong> definem o sucesso ou o fracasso da sua preparação.</p>
+      
+      <h4>1. Garanta Estoque de Água Imediatamente</h4>
+      <ul>
+        <li><strong>Torneiras e Bombas:</strong> Bombas elétricas de prédios e estações municipais param em poucas horas devido ao corte de energia. Abra todas as torneiras e encha baldes, panelas, garrafas e a banheira imediatamente.</li>
+        <li><strong>Água do Aquecedor / Caldeira:</strong> O reservatório de água quente do chuveiro/boiler costuma reter de 50 a 100 litros de água limpa que pode ser drenada pela válvula inferior.</li>
+        <li><strong>Registro Geral:</strong> Se houver risco de contaminação da rede pública por refluxo, feche o registro de entrada do cavalete.</li>
+      </ul>
+
+      <h4>2. Gestão Térmica e Conservação de Alimentos</h4>
+      <ul>
+        <li><strong>Geladeira e Freezer:</strong> Mantenha as portas estritamente fechadas. Uma geladeira fechada preserva os alimentos por até 4 horas; um freezer cheio e fechado aguenta de 24 a 48 horas.</li>
+        <li><strong>Prioridade de Consumo:</strong> Se o blecaute persistir, consuma primeiro os itens mais perecíveis do refrigerador (carnes, laticínios, pratos prontos) antes de abrir enlatados e secos.</li>
+      </ul>
+
+      <h4>3. Comunicação e Energia Portátil</h4>
+      <ul>
+        <li>Ative imediatamente o <strong>Modo Avião</strong> ou desligue os dados móveis caso o sinal esteja instável (a busca por torres esgota 70% da bateria em poucas horas).</li>
+        <li>Reduza o brilho da tela ao mínimo e utilize o modo **Blecaute** deste aplicativo para preservar a visão e economizar energia.</li>
+      </ul>
+
+      <div class="warning-box">
+        <strong>A Regra de Ouro da Sobrevivência (Regra dos 3):</strong> 
+        3 minutos sem ar | 3 horas sem abrigo (em clima extremo) | 3 dias sem água | 3 semanas sem comida. Priorize sempre abrigo e hidratação.
+      </div>
+    `
+  },
+  {
+    id: 1,
+    num: "02",
+    title: "Água: Captação e Purificação Avançada",
+    subtitle: "Técnicas de filtragem em camadas, fervura e eliminação de patógenos",
+    keywords: "agua filtrar ferver carvao areia chuva purificar sede",
+    content: `
+      <h2>Água: Captação e Purificação</h2>
+      <p>Beber água sem tratamento causa infecções intestinais graves, diarreia e vômito, acelerando fatalmente a desidratação. Toda água coletada na natureza deve passar por <strong>duas etapas obrigatórias</strong>: Filtração física e Purificação biológica.</p>
+      
+      <div class="diagram-box">
+        <svg viewBox="0 0 280 150" width="260" height="140">
+          <polygon points="80,10 200,10 165,120 115,120" fill="none" stroke="currentColor" stroke-width="2"/>
+          <line x1="88" y1="35" x2="192" y2="35" stroke="currentColor" stroke-dasharray="3,3"/>
+          <text x="140" y="27" font-size="10" text-anchor="middle" fill="currentColor">1. Pedras / Cascalho (Retém detritos grandes)</text>
+          <line x1="97" y1="62" x2="183" y2="62" stroke="currentColor" stroke-dasharray="3,3"/>
+          <text x="140" y="53" font-size="10" text-anchor="middle" fill="currentColor">2. Areia Fina (Retém partículas suspensas)</text>
+          <line x1="106" y1="90" x2="174" y2="90" stroke="currentColor" stroke-dasharray="3,3"/>
+          <text x="140" y="80" font-size="10" text-anchor="middle" fill="currentColor">3. Carvão Vegetal Triturado (Retém toxinas/odores)</text>
+          <text x="140" y="108" font-size="10" text-anchor="middle" fill="currentColor">4. Pano Limpo / Algodão</text>
+          <path d="M140,122 L140,142" stroke="currentColor" stroke-width="2" marker-end="url(#arrow)"/>
+        </svg>
+        <div class="diagram-caption ui-font">Filtro caseiro em garrafa PET. Utilize apenas carvão de madeira pura, jamais carvão de churrasqueira com aditivos químicos.</div>
+      </div>
+
+      <h4>Métodos Definitivos de Purificação</h4>
+      <ol>
+        <li><strong>Fervura Completa:</strong> O método mais seguro. Leve a água à fervura borbulhante e mantenha por no mínimo <strong>3 a 5 minutos</strong>.</li>
+        <li><strong>Hipoclorito de Sódio (Água Sanitária Comum):</strong> Verifique o rótulo (teor de 2% a 2,5% sem perfume). Adicione <strong>2 gotas</strong> para cada 1 litro de água limpa (ou 4 gotas se turva), misture e aguarde <strong>30 minutos</strong>.</li>
+        <li><strong>Desinfecção Solar (SODIS):</strong> Encha garrafas PET transparentes com água clarificada e deixe sob luz solar direta por pelo menos 6 horas.</li>
+      </ol>
+    `
+  },
+  {
+    id: 2,
+    num: "03",
+    title: "Abrigos por Tipo de Terreno e Ambiente",
+    subtitle: "Como montar estruturas seguras na mata, campos abertos, rochas ou cidades",
+    keywords: "barraca abrigo mata campo rochoso urbano frio chuva lona isolar chao",
+    content: `
+      <h2>Abrigos por Tipo de Terreno e Ambiente</h2>
+      <p>O maior perigo em ambientes abertos ou de crise não é apenas a chuva, mas a <strong>hipotermia</strong>. O solo frio rouba o calor do corpo até 20 vezes mais rápido que o ar. O tipo de abrigo deve ser adaptado rigorosamente ao terreno onde você estiver:</p>
+
+      <h4>1. Abrigo em Área de Mata / Floresta (Ex: A-Frame)</h4>
+      <ul>
+        <li><strong>Estrutura:</strong> Utilize duas árvores vivas ou estacas firmes, esticando uma corda mestra (ridge line) na altura da cintura. Jogue uma lona por cima ou galhos compridos inclinados, prendendo as pontas no chão.</li>
+        <li><strong>Isolamento:</strong> Forre o piso com uma camada densa de pelo menos 15 cm de folhas secas ou capim para cortar a umidade e o frio da terra.</li>
+      </ul>
+
+      <h4>2. Abrigo em Região Aberta / Campos (Vala ou Tenda Baixa)</h4>
+      <ul>
+        <li><strong>Estrutura:</strong> Em locais sem árvores altas, aproveite depressões naturais do terreno ou escave uma vala rasa (de 20 a 30 cm) para abaixar o perfil contra ventos fortes.</li>
+        <li><strong>Proteção:</strong> Utilize capim trançado, arbustos cortados ou pedras empilhadas nas laterais externas para fixar a lona e bloquear rajadas de vento cortante.</li>
+      </ul>
+
+      <h4>3. Abrigo em Áreas Rochosas / Encostas</h4>
+      <ul>
+        <li><strong>Estrutura:</strong> Aproveite saliências de rocha natural, pequenas cavernas ou alpendres de pedra para economizar esforço de construção.</li>
+        <li><strong>Cuidados Críticos:</strong> Jamais monte abrigos sob rochas instáveis ou encostas íngremes com risco de deslizamento (especialmente após chuvas fortes). Verifique também se o local não serve de abrigo para animais peçonhentos.</li>
+      </ul>
+
+      <h4>4. Abrigo Urbano de Contingência (Casas / Ruínas)</h4>
+      <ul>
+        <li><strong>Estrutura:</strong> Em fugas urbanas ou blecautes prolongados, utilize cômodos internos de construções seguras e protegidas contra correntes de ar.</li>
+        <li><strong>Regras de Segurança:</strong> Isole o piso com papelão ou tapetes, mantenha discrição bloqueando janelas visíveis e evite andares superiores vulneráveis a destelhamentos.</li>
+      </ul>
+    `
+  },
+  {
+    id: 3,
+    num: "04",
+    title: "Fogo: Ignição, Iscas e Fogueiras",
+    subtitle: "Métodos de emergência, escada de combustíveis e fogueiras táticas",
+    keywords: "fogo fogueira isca pederneira bateria palha aco brasa",
+    content: `
+      <h2>Fogo: Ignição, Iscas e Fogueiras</h2>
+      <p>O fogo fornece calor, purifica água, cozinha alimentos e afasta predadores. Utilize sempre a <strong>Escada de Combustíveis</strong>:</p>
+      
+      <ol>
+        <li><strong>Isca (Yesca):</strong> Algodão esgarçado, penugem de sementes, casca de cedro raspada ou palha de aço fina.</li>
+        <li><strong>Gravetos Finos:</strong> Gravetos secos do tamanho de palitos de dente.</li>
+        <li><strong>Gravetos Médios:</strong> Galhos na espessura de um lápis.</li>
+        <li><strong>Lenha Estrutural:</strong> Toras grossas para sustentar a brasa duradoura.</li>
+      </ol>
+
+      <h4>Métodos de Ignição Sem Isqueiro</h4>
+      <ul>
+        <li><strong>Pilha + Palha de Aço:</strong> Encoste os polos de uma pilha nos filamentos da palha de aço fina para gerar incandescência instantânea.</li>
+        <li><strong>Lente / Óculos:</strong> Concentre a luz solar num ponto focal exato sobre material seco escuro.</li>
+      </ul>
+
+      <h4>Tipos de Fogueiras</h4>
+      <ul>
+        <li><strong>Fogueira Estrela:</strong> 5 toras convergindo para o centro, eliminando o corte constante de achas.</li>
+        <li><strong>Fogueira Trincheira (Dakota):</strong> Cavada em "L" no chão, altamente discreta contra ventos e que oculta a claridade à noite.</li>
+      </ul>
+    `
+  },
+  {
+    id: 4,
+    num: "05",
+    title: "Raízes, Plantas Comestíveis e Perigos",
+    subtitle: "Guia de forrageamento no Brasil, espécies seguras e o Teste Universal",
+    keywords: "comer raizes plantas mandioca taioba ora pro nobis veneno teste",
+    content: `
+      <h2>Raízes, Plantas Comestíveis e Perigos</h2>
+      <p>O Brasil possui vasta biodiversidade, mas a identificação botânica exige cautela extrema para evitar intoxicações graves.</p>
+
+      <h4>Espécies Comestíveis Reconhecidas</h4>
+      <ul>
+        <li><strong>Mandioca / Aipim:</strong> Altamente calórica. <em>Atenção:</em> A variedade brava contém ácido cianídrico e exige descascamento, ralagem, prensagem e cozimento prolongado.</li>
+        <li><strong>Taioba Verdadeira:</strong> Folha verde-clara aveludada, talo inteiramente verde e limbo unindo-se ao talo (talo roxo indica taioba-brava tóxica).</li>
+        <li><strong>Ora-pro-nóbis:</strong> Trepadeira rústica de folhas carnudas suculentas e ricas em proteínas.</li>
+        <li><strong>Coração de Banana:</strong> Inflorescência terminal da bananeira que, quando cozida com sal para retirar o amargor, é altamente nutritiva.</li>
+      </ul>
+
+      <div class="warning-box">
+        <strong>Sinais de Alerta:</strong> Evite plantas com seiva leitosa (látex branco), odor de amêndoas amargas ou pelos urticantes severos.
+      </div>
+
+      <h4>O Teste Universal de Comestibilidade (24 Horas)</h4>
+      <ol>
+        <li>Separe a planta em partes isoladas e fique em jejum por 4 horas.</li>
+        <li>Esfregue o vegetal esmagado no pulso e aguarde 15 minutos.</li>
+        <li>Coloque nos lábios por 3 minutos e depois na ponta da língua.</li>
+        <li>Mastigue uma colher de chá sem engolir por 15 minutos e aguarde 8 horas. Se não houver reação, engula uma pequena porção e espere mais 8 horas.</li>
+      </ol>
+    `
+  },
+  {
+    id: 5,
+    num: "06",
+    title: "Primeiros Socorros, Higiene e Nós",
+    subtitle: "Controle de hemorragias, prevenção de infecções e nós essenciais",
+    keywords: "ferimento sangue hipotermia no lais de guia socorros higiene",
+    content: `
+      <h2>Primeiros Socorros, Higiene e Nós</h2>
+      
+      <h4>1. Controle de Hemorragias</h4>
+      <p>Aplique pressão direta e contínua sobre a ferida com pano limpo por 10 minutos sem remover camadas. Se encharcar, coloque mais panos por cima.</p>
+
+      <h4>2. Nós Essenciais: Lais de Guia (Bowline)</h4>
+      <p>Cria uma alça firme que não aperta sob carga pesada e é desfeita facilmente.</p>
+      <div class="diagram-box">
+        <svg viewBox="0 0 260 90" width="240" height="80">
+          <text x="130" y="30" font-size="12" text-anchor="middle" fill="currentColor">Mnemônico: "A cobra sai do lago,"</text>
+          <text x="130" y="55" font-size="12" text-anchor="middle" fill="currentColor">"dá a volta por trás e desce ao lago."</text>
+        </svg>
+      </div>
+    `
+  },
+  {
+    id: 6,
+    num: "07",
+    title: "Sinais de Resgate e Comunicação Tática",
+    subtitle: "Métodos visuais, fogueiras de socorro e códigos solo-ar",
+    keywords: "resgate sinal fogueira triangulo espelho heliógrafo radio sos",
+    content: `
+      <h2>Sinais de Resgate e Comunicação Tática</h2>
+      <p>Quando equipes de busca estão ativas, saber sinalizar sua posição com clareza multiplica as chances de localização rápida.</p>
+
+      <h4>1. Sinais Visuais Universais (Solo-Ar)</h4>
+      <ul>
+        <li><strong>Letra "V" (Preciso de Auxílio):</strong> Estendida no solo com troncos ou tecidos contrastantes.</li>
+        <li><strong>Letra "X" (Preciso de Auxílio Médico):</strong> Sinal crítico para resgate aeromédico.</li>
+        <li><strong>Letra "F" (Preciso de Alimento e Água).</strong></li>
+      </ul>
+
+      <h4>2. O Triângulo de Fogo</h4>
+      <p>Três fogueiras acesas dispostas em formato de triângulo formam o <strong>sinal internacional reconhecido de socorro e perigo</strong>.</p>
+
+      <h4>3. Espelho de Sinalização (Heliógrafo)</h4>
+      <p>Gera flashes de luz visíveis a quilômetros por aeronaves. Estenda a mão, faça "v" com os dedos em direção ao avião e posicione o reflexo entre os dedos.</p>
+    `
+  },
+  {
+    id: 7,
+    num: "08",
+    title: "Armadilhas de Subsistência e Pesca",
+    subtitle: "Técnicas de captura passiva e improvisação de ferramentas de pesca",
+    keywords: "armadilha pesca anzol linha rio sobrevivencia proteina",
+    content: `
+      <h2>Armadilhas de Subsistência e Pesca</h2>
+      <p>Em cenários de escassez prolongada, utilizam-se <strong>armadilhas passivas</strong> que trabalham enquanto você busca água ou descansa.</p>
+
+      <h4>1. Princípios Éticos e de Segurança</h4>
+      <p>Exigem monitoramento frequente (ao menos duas vezes ao dia). Nunca instale armadilhas perto de trilhas de resgate.</p>
+
+      <h4>2. Armadilha de Laço Simples (Snare)</h4>
+      <p>Laço coradiço de corda ou arame flexível preso a uma estaca firme no solo, posicionado na trilha de pequenos animais.</p>
+
+      <h4>3. Pesca de Emergência em Cursos d'Água</h4>
+      <p>Utilize anzóis improvisados de espinhos/ossos ou construa barreiras diagonais (tapagens) de pedras e gravetos para direcionar peixes para bacias de contenção.</p>
+    `
+  },
+  {
+    id: 8,
+    num: "09",
+    title: "Psicologia de Sobrevivência e Gestão de Pânico",
+    subtitle: "O fator mental, controle do estresse e tomadas de decisão sob pressão",
+    keywords: "psicologia panico estresse mente decisao stop medo",
+    content: `
+      <h2>Psicologia de Sobrevivência e Gestão de Pânico</h2>
+      <p>90% do sucesso em situações críticas depende da mente (resiliência e atitude positiva).</p>
+
+      <h4>O Modelo STOP de Tomada de Decisão</h4>
+      <ul>
+        <li><strong>S — Stop (Pare):</strong> Interrompa o que está fazendo e respire fundo.</li>
+        <li><strong>T — Think (Pense):</strong> Avalie seus recursos reais sem exagero.</li>
+        <li><strong>O — Observe (Observe):</strong> Analise o ambiente e perigos imediatos.</li>
+        <li><strong>P — Plan (Planeje):</strong> Formule um plano passo a passo de curto prazo.</li>
+      </ul>
+    `
+  },
+  {
+    id: 9,
+    num: "10",
+    title: "Meteorologia Analógica e Sinais Naturais",
+    subtitle: "Como prever temporais e mudanças climáticas observando o ambiente",
+    keywords: "tempo chuva vento nuvem meteorologia pressao previsao",
+    content: `
+      <h2>Meteorologia Analógica e Sinais Naturais</h2>
+      <p>Sem acesso a internet ou rádio, a natureza fornece indicadores seguros sobre alterações bruscas no tempo.</p>
+
+      <h4>1. Leitura de Nuvens</h4>
+      <p><strong>Cumulonimbus (Nuvens de Tempestade):</strong> Nuvens verticais com topo em bigorna indicam tempestades elétricas severas e rajadas de vento iminentes. Busque abrigo imediato.</p>
+
+      <h4>2. Comportamento da Fauna e Ventos</h4>
+      <p>Insetos voando mais baixo e pássaros buscando refúgio denso antecipam quedas na pressão atmosférica e temporais.</p>
+    `
+  }
+];
+
+const MORSE_MAP = {
+  'A': '• —', 'B': '— • • •', 'C': '— • — •', 'D': '— • •', 'E': '•',
+  'F': '• • — •', 'G': '— — •', 'H': '• • • •', 'I': '• •', 'J': '• — — —',
+  'K': '— • —', 'L': '• — • •', 'M': '— —', 'N': '— •', 'O': '— — —',
+  'P': '• — — •', 'Q': '— — • —', 'R': '• — •', 'S': '• • •', 'T': '—',
+  'U': '• • —', 'V': '• • • —', 'W': '• — —', 'X': '— • • —', 'Y': '— • — —',
+  'Z': '— — • •', '0': '— — — — —', '1': '• — — — —', '2': '• • — — —',
+  '3': '• • • — —', '4': '• • • • —', '5': '• • • • •', '6': '— • • • •',
+  '7': '— — • • •', '8': '— — — • •', '9': '— — — — •', ' ': '/'
+};
+
+function renderMorseTables() {
+  const alphaGrid = document.getElementById('morseAlphabetGrid');
+  const numGrid = document.getElementById('morseNumbersGrid');
+  alphaGrid.innerHTML = '';
+  numGrid.innerHTML = '';
+
+  for (let char in MORSE_MAP) {
+    if (char === ' ') continue;
+    const div = document.createElement('div');
+    div.className = 'morse-cell';
+    div.innerHTML = `<div class="char">${char}</div><div class="code">${MORSE_MAP[char]}</div>`;
+    if (char >= '0' && char <= '9') {
+      numGrid.appendChild(div);
+    } else {
+      alphaGrid.appendChild(div);
+    }
+  }
+}
+
+function translateMorse() {
+  const val = document.getElementById('morseInput').value.toUpperCase();
+  let res = '';
+  for (let i = 0; i < val.length; i++) {
+    const c = val[i];
+    if (MORSE_MAP[c]) {
+      res += MORSE_MAP[c] + '   ';
+    } else {
+      res += '?   ';
+    }
+  }
+  document.getElementById('morseOutput').textContent = res.trim() || '... --- ...';
+}
+
+const CHECKLIST_ITEMS = [
+  "Água potável (mínimo 2 a 3 litros por pessoa)",
+  "Lanterna LED + pilhas extras ou dínamo manual",
+  "Isqueiro bic, fósforos impermeáveis e pederneira",
+  "Canivete multifuncional ou lâmina fixa resistente",
+  "Kit de primeiros socorros (gaze, atadura, antisséptico, analgésico)",
+  "Lona plástica leve (2x3m) e 15m de corda paracord",
+  "Alimentos não perecíveis calóricos (castanhas, barras, enlatados)",
+  "Manta térmica aluminizada de emergência",
+  "Rádio portátil AM/FM a pilha",
+  "Cópia física de documentos e dinheiro em espécie trocado"
+];
+
+/* =========================================================
+   2. NAVEGAÇÃO, LEITOR E MODO BLECAUTE
+========================================================= */
+let currentChapter = 0;
+let blackoutMode = 0; // 0: Normal, 1: Âmbar, 2: Verde
+
+function switchTab(tabId) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + tabId).classList.add('active');
+  document.getElementById('nav-' + tabId).classList.add('active');
+
+  if (tabId === 'compass') {
+    resizeMapCanvas();
+    drawMap();
+  }
+}
+
+function cycleBlackout() {
+  blackoutMode = (blackoutMode + 1) % 3;
+  document.body.classList.remove('blackout-amber', 'blackout-green');
+  const btn = document.getElementById('btnBlackout');
+
+  if (blackoutMode === 0) {
+    btn.textContent = "Blecaute: OFF";
+  } else if (blackoutMode === 1) {
+    document.body.classList.add('blackout-amber');
+    btn.textContent = "Blecaute: ÂMBAR";
+  } else {
+    document.body.classList.add('blackout-green');
+    btn.textContent = "Blecaute: VERDE";
+  }
+  drawMap();
+}
+
+function renderChapters() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const list = document.getElementById('chapterList');
+  list.innerHTML = '';
+
+  CHAPTERS.filter(ch =>
+    ch.title.toLowerCase().includes(q) ||
+    ch.subtitle.toLowerCase().includes(q) ||
+    ch.keywords.toLowerCase().includes(q) ||
+    ch.content.toLowerCase().includes(q)
+  ).forEach(ch => {
+    const card = document.createElement('div');
+    card.className = 'chapter-card';
+    card.onclick = () => openChapter(ch.id);
+    card.innerHTML = `
+      <div class="chapter-num ui-font">${ch.num}</div>
+      <div class="chapter-info">
+        <h3>${ch.title}</h3>
+        <p class="ui-font">${ch.subtitle}</p>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function openChapter(id) {
+  currentChapter = id;
+  const ch = CHAPTERS[id];
+  document.getElementById('readerChapterTag').textContent = `CAPÍTULO ${ch.num} DE ${CHAPTERS.length < 10 ? '0' + CHAPTERS.length : CHAPTERS.length}`;
+  document.getElementById('readerContent').innerHTML = ch.content;
+  document.getElementById('btnPrevChap').disabled = (id === 0);
+  document.getElementById('btnNextChap').disabled = (id === CHAPTERS.length - 1);
+  switchTab('reader');
+  window.scrollTo(0, 0);
+}
+
+function changeChapter(delta) {
+  const next = currentChapter + delta;
+  if (next >= 0 && next < CHAPTERS.length) {
+    openChapter(next);
+  }
+}
+
+function toggleBookmark() {
+  localStorage.setItem('survival_bookmark', currentChapter);
+  updateBookmarkBanner();
+  alert('Página marcada para leitura rápida na capa!');
+}
+
+function updateBookmarkBanner() {
+  const saved = localStorage.getItem('survival_bookmark');
+  const banner = document.getElementById('bookmarkBanner');
+  if (saved !== null && CHAPTERS[saved]) {
+    banner.style.display = 'flex';
+    document.getElementById('bookmarkLabel').textContent = `Cap. ${CHAPTERS[saved].num}: ${CHAPTERS[saved].title}`;
+  }
+}
+
+function openSavedBookmark() {
+  const saved = parseInt(localStorage.getItem('survival_bookmark') || '0', 10);
+  openChapter(saved);
+}
+
+/* =========================================================
+   3. BÚSSOLA ESTABILIZADA COM DUPLO FILTRO ANTI-OSCILAÇÃO
+========================================================= */
+let rawTargetHeading = 0;   
+let targetHeading = 0;      
+let needleAngle = 0;        
+let needleVelocity = 0;     
+let lockedHeading = null;   
+let isDraggingCompass = false;
+let dragStartAngle = 0;
+
+const compassCanvas = document.getElementById('compassCanvas');
+const cCtx = compassCanvas.getContext('2d');
+
+function getCardinal(deg) {
+  const dirs = ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO'];
+  const idx = Math.round(((deg % 360) + 360) % 360 / 45) % 8;
+  return dirs[idx];
+}
+
+function enableCompassSensor() {
+  const statusEl = document.getElementById('sensorStatus');
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission()
+      .then(state => {
+        if (state === 'granted') {
+          bindOrientationEvents();
+          statusEl.textContent = "Magnetômetro ativo (Ultra Estável).";
+        } else {
+          statusEl.textContent = "Permissão negada. Arraste o mostrador.";
+        }
+      })
+      .catch(() => {
+        statusEl.textContent = "Sensor indisponível. Use o toque no mostrador.";
+      });
+  } else if ('ondeviceorientationabsolute' in window || 'ondeviceorientation' in window) {
+    bindOrientationEvents();
+    statusEl.textContent = "Sensor magnético conectado (Ultra Estável).";
+  } else {
+    statusEl.textContent = "Sem sensor magnético. Arraste a bússola.";
+  }
+}
+
+function bindOrientationEvents() {
+  const handler = (e) => {
+    if (isDraggingCompass) return;
+    let heading = null;
+    if (typeof e.webkitCompassHeading === 'number') {
+      heading = e.webkitCompassHeading;
+    } else if (e.alpha !== null) {
+      heading = (360 - e.alpha) % 360;
+    }
+    if (heading !== null && !isNaN(heading)) {
+      rawTargetHeading = (heading + 360) % 360;
+    }
+  };
+  window.addEventListener('deviceorientationabsolute', handler, true);
+  window.addEventListener('deviceorientation', handler, true);
+  document.getElementById('btnSensor').classList.add('active-state');
+}
+
+function toggleHeadingLock() {
+  const btn = document.getElementById('btnLock');
+  const badge = document.getElementById('lockBadge');
+  if (lockedHeading === null) {
+    lockedHeading = Math.round(targetHeading);
+    btn.classList.add('active-state');
+    btn.textContent = `Destravar (${lockedHeading}°)`;
+    badge.textContent = `RUMO ${lockedHeading}°`;
+  } else {
+    lockedHeading = null;
+    btn.classList.remove('active-state');
+    btn.textContent = "Travar Rumo";
+    badge.textContent = "LIVRE";
+  }
+}
+
+function getPointerAngle(e) {
+  const rect = compassCanvas.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI);
+}
+
+compassCanvas.addEventListener('pointerdown', (e) => {
+  isDraggingCompass = true;
+  dragStartAngle = getPointerAngle(e) + rawTargetHeading;
+});
+
+window.addEventListener('pointermove', (e) => {
+  if (!isDraggingCompass) return;
+  const current = getPointerAngle(e);
+  rawTargetHeading = ((dragStartAngle - current) % 360 + 360) % 360;
+});
+
+window.addEventListener('pointerup', () => {
+  isDraggingCompass = false;
+});
+
+function animateCompass() {
+  let diffHeading = ((rawTargetHeading - targetHeading + 540) % 360) - 180;
+  targetHeading = (targetHeading + diffHeading * 0.04 + 360) % 360;
+
+  const desiredNeedle = -targetHeading;
+  let diffNeedle = ((desiredNeedle - needleAngle + 540) % 360) - 180;
+
+  needleVelocity = needleVelocity * 0.55 + diffNeedle * 0.05;
+  needleAngle += needleVelocity;
+
+  drawCompass(needleAngle);
+
+  const degInt = Math.round((targetHeading % 360 + 360) % 360) % 360;
+  document.getElementById('headingDisplay').textContent =
+    `${String(degInt).padStart(3, '0')}° ${getCardinal(degInt)}`;
+
+  requestAnimationFrame(animateCompass);
+}
+
+function drawCompass(angleDeg) {
+  const w = compassCanvas.width;
+  const h = compassCanvas.height;
+  const cx = w / 2;
+  const cy = h / 2;
+  const r = 94;
+
+  cCtx.clearRect(0, 0, w, h);
+
+  const style = getComputedStyle(document.body);
+  const textColor = style.getPropertyValue('--text-main').trim() || '#1f241d';
+  const borderColor = style.getPropertyValue('--border-color').trim() || '#d6cbb5';
+  const accentColor = style.getPropertyValue('--accent').trim() || '#b85d19';
+
+  cCtx.beginPath();
+  cCtx.arc(cx, cy, r + 8, 0, Math.PI * 2);
+  cCtx.strokeStyle = borderColor;
+  cCtx.lineWidth = 3;
+  cCtx.stroke();
+
+  cCtx.beginPath();
+  cCtx.moveTo(cx, cy - r - 12);
+  cCtx.lineTo(cx, cy - r + 4);
+  cCtx.strokeStyle = accentColor;
+  cCtx.lineWidth = 3;
+  cCtx.stroke();
+
+  for (let i = 0; i < 360; i += 15) {
+    const rad = (i - 90) * Math.PI / 180;
+    const inner = (i % 45 === 0) ? r - 11 : r - 6;
+    cCtx.beginPath();
+    cCtx.moveTo(cx + Math.cos(rad) * inner, cy + Math.sin(rad) * inner);
+    cCtx.lineTo(cx + Math.cos(rad) * r, cy + Math.sin(rad) * r);
+    cCtx.strokeStyle = textColor;
+    cCtx.lineWidth = (i % 90 === 0) ? 2 : 1;
+    cCtx.stroke();
+  }
+
+  cCtx.font = "bold 15px sans-serif";
+  cCtx.textAlign = "center";
+  cCtx.textBaseline = "middle";
+  cCtx.fillStyle = "#c92a2a";
+  cCtx.fillText("N", cx, cy - r + 22);
+  cCtx.fillStyle = textColor;
+  cCtx.fillText("S", cx, cy + r - 22);
+  cCtx.fillText("L", cx + r - 22, cy);
+  cCtx.fillText("O", cx - r + 22, cy);
+
+  if (lockedHeading !== null) {
+    const lockRelAngle = (lockedHeading - targetHeading - 90) * Math.PI / 180;
+    cCtx.beginPath();
+    cCtx.arc(cx + Math.cos(lockRelAngle) * (r - 2), cy + Math.sin(lockRelAngle) * (r - 2), 6, 0, Math.PI * 2);
+    cCtx.fillStyle = accentColor;
+    cCtx.fill();
+  }
+
+  cCtx.save();
+  cCtx.translate(cx, cy);
+  cCtx.rotate(angleDeg * Math.PI / 180);
+
+  cCtx.beginPath();
+  cCtx.moveTo(0, -r + 16);
+  cCtx.lineTo(9, 0);
+  cCtx.lineTo(-9, 0);
+  cCtx.closePath();
+  cCtx.fillStyle = "#d92b2b";
+  cCtx.fill();
+
+  cCtx.beginPath();
+  cCtx.moveTo(0, r - 16);
+  cCtx.lineTo(9, 0);
+  cCtx.lineTo(-9, 0);
+  cCtx.closePath();
+  cCtx.fillStyle = "#cfd4da";
+  cCtx.fill();
+  cCtx.strokeStyle = "#495057";
+  cCtx.lineWidth = 1;
+  cCtx.stroke();
+
+  cCtx.beginPath();
+  cCtx.arc(0, 0, 6, 0, Math.PI * 2);
+  cCtx.fillStyle = "#212529";
+  cCtx.fill();
+
+  cCtx.restore();
+}
+
+/* =========================================================
+   4. CAIXA MAPA: RASTREADOR, ROTA DE RETORNO E WAYPOINT ABRIGO
+========================================================= */
+const mapCanvas = document.getElementById('mapCanvas');
+const mCtx = mapCanvas.getContext('2d');
+
+let trackPoints = [{ x: 0, y: 0, mode: 'go' }];
+let shelterWaypoint = null; // Ponto do Abrigo marcado no mapa
+let isReturning = false;
+let gpsWatchId = null;
+let originLatLon = null;
+
+function resizeMapCanvas() {
+  const rect = mapCanvas.getBoundingClientRect();
+  if (rect.width > 0) {
+    mapCanvas.width = rect.width;
+  }
+}
+
+function toggleReturnMode() {
+  isReturning = !isReturning;
+  const statusEl = document.getElementById('trackStatus');
+  const btn = document.getElementById('btnModeSwitch');
+  if (isReturning) {
+    statusEl.textContent = "RETORNO (VERMELHO)";
+    statusEl.style.color = "var(--route-back)";
+    btn.classList.add('active-state');
+    btn.textContent = "Voltando (Vermelho)";
+  } else {
+    statusEl.textContent = "IDA (AZUL)";
+    statusEl.style.color = "var(--route-go)";
+    btn.classList.remove('active-state');
+    btn.textContent = "Modo Retorno";
+  }
+}
+
+function stepForward() {
+  const last = trackPoints[trackPoints.length - 1];
+  const rad = (targetHeading - 90) * Math.PI / 180;
+  const stepDist = 18;
+  const nx = last.x + Math.cos(rad) * stepDist;
+  const ny = last.y + Math.sin(rad) * stepDist;
+
+  if (!isReturning && trackPoints.length > 4) {
+    const startPt = trackPoints[0];
+    const distToStart = Math.hypot(nx - startPt.x, ny - startPt.y);
+    const prevDistToStart = Math.hypot(last.x - startPt.x, last.y - startPt.y);
+    if (distToStart < prevDistToStart && distToStart < 45) {
+      toggleReturnMode();
+    }
+  }
+
+  trackPoints.push({ x: nx, y: ny, mode: isReturning ? 'back' : 'go' });
+  drawMap();
+}
+
+function markShelterWaypoint() {
+  const current = trackPoints[trackPoints.length - 1];
+  shelterWaypoint = { x: current.x, y: current.y };
+  drawMap();
+  alert("🏕️ Abrigo marcado com sucesso na posição atual no mapa!");
+}
+
+function toggleGpsTracking() {
+  const btn = document.getElementById('btnGpsTrack');
+  if (gpsWatchId !== null) {
+    navigator.geolocation.clearWatch(gpsWatchId);
+    gpsWatchId = null;
+    btn.classList.remove('active-state');
+    btn.textContent = "Iniciar GPS";
+    return;
+  }
+
+  if (!('geolocation' in navigator)) {
+    alert("GPS não disponível. Use '+ Passo' para testar.");
+    return;
+  }
+
+  btn.classList.add('active-state');
+  btn.textContent = "GPS Ativo...";
+  gpsWatchId = navigator.geolocation.watchPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      if (!originLatLon) {
+        originLatLon = { lat: latitude, lon: longitude };
+        return;
+      }
+      const metersY = -(latitude - originLatLon.lat) * 111320;
+      const metersX = (longitude - originLatLon.lon) * 111320 * Math.cos(latitude * Math.PI / 180);
+      const last = trackPoints[trackPoints.length - 1];
+
+      if (Math.hypot(metersX - last.x, metersY - last.y) >= 3) {
+        if (!isReturning && trackPoints.length > 5 && Math.hypot(metersX, metersY) < Math.hypot(last.x, last.y) && Math.hypot(metersX, metersY) < 25) {
+          toggleReturnMode();
+        }
+        trackPoints.push({ x: metersX, y: metersY, mode: isReturning ? 'back' : 'go' });
+        drawMap();
+      }
+    },
+    () => {
+      alert("Sinal de satélite indisponível. Use o botão '+ Passo'.");
+      toggleGpsTracking();
+    },
+    { enableHighAccuracy: true, maximumAge: 2000 }
+  );
+}
+
+function drawMap() {
+  const w = mapCanvas.width;
+  const h = mapCanvas.height;
+  mCtx.clearRect(0, 0, w, h);
+
+  const style = getComputedStyle(document.body);
+  const gridColor = style.getPropertyValue('--map-grid').trim() || 'rgba(0,0,0,0.12)';
+  const goColor = style.getPropertyValue('--route-go').trim() || '#1d63b8';
+  const backColor = style.getPropertyValue('--route-back').trim() || '#c92a2a';
+
+  mCtx.strokeStyle = gridColor;
+  mCtx.lineWidth = 1;
+  for (let gx = 0; gx < w; gx += 25) {
+    mCtx.beginPath(); mCtx.moveTo(gx, 0); mCtx.lineTo(gx, h); mCtx.stroke();
+  }
+  for (let gy = 0; gy < h; gy += 25) {
+    mCtx.beginPath(); mCtx.moveTo(0, gy); mCtx.lineTo(w, gy); mCtx.stroke();
+  }
+
+  const current = trackPoints[trackPoints.length - 1];
+  const offsetX = w / 2 - current.x;
+  const offsetY = h / 2 - current.y;
+
+  for (let i = 1; i < trackPoints.length; i++) {
+    const p1 = trackPoints[i - 1];
+    const p2 = trackPoints[i];
+    mCtx.beginPath();
+    mCtx.moveTo(p1.x + offsetX, p1.y + offsetY);
+    mCtx.lineTo(p2.x + offsetX, p2.y + offsetY);
+    mCtx.strokeStyle = (p2.mode === 'back') ? backColor : goColor;
+    mCtx.lineWidth = 3.5;
+    mCtx.lineCap = "round";
+    mCtx.stroke();
+  }
+
+  const start = trackPoints[0];
+  mCtx.beginPath();
+  mCtx.arc(start.x + offsetX, start.y + offsetY, 6, 0, Math.PI * 2);
+  mCtx.fillStyle = "#2b8a3e";
+  mCtx.fill();
+
+  // Desenhar waypoint de abrigo se marcado
+  if (shelterWaypoint) {
+    mCtx.beginPath();
+    mCtx.arc(shelterWaypoint.x + offsetX, shelterWaypoint.y + offsetY, 8, 0, Math.PI * 2);
+    mCtx.fillStyle = "#2b8a3e";
+    mCtx.fill();
+    mCtx.strokeStyle = "#ffffff";
+    mCtx.lineWidth = 2;
+    mCtx.stroke();
+  }
+
+  mCtx.beginPath();
+  mCtx.arc(current.x + offsetX, current.y + offsetY, 5, 0, Math.PI * 2);
+  mCtx.fillStyle = isReturning ? backColor : goColor;
+  mCtx.fill();
+  mCtx.strokeStyle = "#ffffff";
+  mCtx.lineWidth = 2;
+  mCtx.stroke();
+}
+
+function resetTrack() {
+  trackPoints = [{ x: 0, y: 0, mode: 'go' }];
+  shelterWaypoint = null;
+  originLatLon = null;
+  if (isReturning) toggleReturnMode();
+  drawMap();
+}
+
+function saveCurrentTrack() {
+  if (trackPoints.length < 2) {
+    alert("Caminhe ou adicione passos no mapa antes de gravar.");
+    return;
+  }
+  const saved = JSON.parse(localStorage.getItem('survival_tracks') || '[]');
+  const now = new Date();
+  const label = `Rota ${now.getDate()}/${now.getMonth()+1} às ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} (${trackPoints.length} pts)`;
+  saved.unshift({ label, points: trackPoints, shelter: shelterWaypoint });
+  localStorage.setItem('survival_tracks', JSON.stringify(saved.slice(0, 5)));
+  renderSavedTracks();
+}
+
+function renderSavedTracks() {
+  const list = document.getElementById('savedRoutesList');
+  const saved = JSON.parse(localStorage.getItem('survival_tracks') || '[]');
+  if (saved.length === 0) {
+    list.innerHTML = '<div style="color:var(--text-muted); margin-top:4px;">Nenhuma rota gravada ainda.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  saved.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'route-item';
+    div.innerHTML = `
+      <span>${item.label}</span>
+      <button class="btn-sm" style="flex:none; padding:4px 8px;" onclick="loadSavedTrack(${idx})">Abrir</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function loadSavedTrack(idx) {
+  const saved = JSON.parse(localStorage.getItem('survival_tracks') || '[]');
+  if (saved[idx]) {
+    trackPoints = saved[idx].points;
+    shelterWaypoint = saved[idx].shelter || null;
+    drawMap();
+  }
+}
+
+/* =========================================================
+   5. CHECKLIST E SINALIZADOR SOS
+========================================================= */
+function renderChecklist() {
+  const container = document.getElementById('checklistContainer');
+  const checkedState = JSON.parse(localStorage.getItem('survival_checklist') || '{}');
+  container.innerHTML = '';
+  let count = 0;
+
+  CHECKLIST_ITEMS.forEach((text, i) => {
+    const isChecked = !!checkedState[i];
+    if (isChecked) count++;
+    const label = document.createElement('label');
+    label.className = 'checklist-item' + (isChecked ? ' checked' : '');
+    label.innerHTML = `
+      <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleCheck(${i})">
+      <span>${text}</span>
+    `;
+    container.appendChild(label);
+  });
+
+  const pct = Math.round((count / CHECKLIST_ITEMS.length) * 100);
+  document.getElementById('checkProgress').textContent = `${pct}% (${count}/${CHECKLIST_ITEMS.length})`;
+}
+
+function toggleCheck(idx) {
+  const checkedState = JSON.parse(localStorage.getItem('survival_checklist') || '{}');
+  checkedState[idx] = !checkedState[idx];
+  localStorage.setItem('survival_checklist', JSON.stringify(checkedState));
+  renderChecklist();
+}
+
+let sosTimer = null;
+function startSOS() {
+  const overlay = document.getElementById('sosOverlay');
+  overlay.style.display = 'flex';
+  const pattern = [
+    200, 200, 200, 200, 200, 500,
+    600, 200, 600, 200, 600, 500,
+    200, 200, 200, 200, 200, 1200
+  ];
+  let step = 0;
+  let isLit = true;
+
+  function runStep() {
+    if (overlay.style.display === 'none') return;
+    overlay.style.background = isLit ? '#ffffff' : '#000000';
+    overlay.style.color = isLit ? '#000000' : '#ffffff';
+    const delay = pattern[step];
+    isLit = !isLit;
+    step = (step + 1) % pattern.length;
+    sosTimer = setTimeout(runStep, delay);
+  }
+  runStep();
+}
+
+function stopSOS() {
+  clearTimeout(sosTimer);
+  document.getElementById('sosOverlay').style.display = 'none';
+}
+
+/* =========================================================
+   INICIALIZAÇÃO
+========================================================= */
+renderChapters();
+updateBookmarkBanner();
+renderChecklist();
+renderSavedTracks();
+renderMorseTables();
+translateMorse();
+animateCompass();
+drawMap();
+window.addEventListener('resize', () => {
+  resizeMapCanvas();
+  drawMap();
+});
+</script>
+</body>
+</html>
